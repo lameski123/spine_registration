@@ -12,13 +12,14 @@ import imfusion
 imfusion.init()
 
 ##############RAYCAST##################
-from myAlg import *
+# from myAlg import *
 # from Raycast import *
 # imgs = imfusion.open("C:\\Users\\Jane\\Downloads\\vertebra_imf_file")
-# # print(imgs)
+# temp = imgs[0][0]
+# # print(temp)
 # output = imfusion.executeAlgorithm("Raycast", imgs)
 # img = output
-#
+
 # print(img)
 # # images = []
 # # for i in imgs:
@@ -43,39 +44,38 @@ from CPD import *
 from Raycast import *
 
 XY = imfusion.SharedImageSet()
-(X,Y) = imfusion.open("vert12.imf")
+image = imfusion.open("vert_lumb_joined.imf")
 
-
-x_np = np.squeeze(np.array(X[0]))
-y_np = np.squeeze(np.array(Y[0]))
-# print(x_np.shape, y_np.shape)
-y_np_temp = np.zeros_like(x_np)
-# print(y_np_temp.shape)
-y_np_temp[0:52,0:90,0:102] = y_np
-# print(x_np.shape, y_np.shape)
-X = imfusion.SharedImage(np.expand_dims(x_np, axis=-1))
-Y = imfusion.SharedImage(np.expand_dims(y_np_temp, axis=-1))
+# x_np = np.squeeze(np.array(X[0]))
+# y_np = np.squeeze(np.array(Y[0]))
+# # print(x_np.shape, y_np.shape)
+# y_np_temp = np.zeros_like(x_np)
+# # print(y_np_temp.shape)
+# y_np_temp[0:52, 0:90, 0:102] = y_np
+# # print(x_np.shape, y_np.shape)
+# X = imfusion.SharedImage(np.expand_dims(x_np, axis=-1))
+# Y = imfusion.SharedImage(np.expand_dims(y_np_temp, axis=-1))
 # print(X[0])
 # X.add(Y)
-XY.add(X)
-XY.add(Y)
-print(XY)
-output = imfusion.executeAlgorithm("CPD", XY)
-
+# XY.add(X)
+# XY.add(Y)
+print(image)
+output = imfusion.executeAlgorithm("CPD", image)
+#
 print(output)
 # Y = imfusion.executeAlgorithm('Apply Transformation', X)
 
-# src = np.squeeze(np.array(X[0]))
-# ray = np.squeeze(np.array(Y[0]))
-# print(src.shape, ray.shape)
+src = np.squeeze(np.array(image[0][0]))
+ray = np.squeeze(np.array(output[0]))
+print(src.shape, ray.shape)
 
-# for k in range(src.shape[1]):
-#     # rays[k] = raycast(blur(img[k, :, :]), rays[k])
-#     if np.unique(src[:, k, :]).size > 1:
-#         fig, ax = plt.subplots(1, 2)
-#         ax[0].imshow(src[:, k, :])
-#         ax[1].imshow(ray[:, k, :])
-#         plt.show()
+for k in range(src.shape[0]):
+    # rays[k] = raycast(blur(img[k, :, :]), rays[k])
+    if np.unique(src[k, :, :]).size > 0:
+        fig, ax = plt.subplots(1, 2)
+        ax[0].imshow(src[k, :, :])
+        ax[1].imshow(ray[k, :, :])
+        plt.show()
 #     # ax[1].imshow(blur(img[k, :, :]))
 # # plt.show()
 

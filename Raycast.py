@@ -12,17 +12,17 @@ def raycast(image, rays):
     return rays
 
 def multi_raycast(image, rays):
-    # uni = np.unique(image)
+    uni = np.unique(image)
     # # print(uni)
-    # uni = np.delete(uni, 0)
+    uni = np.delete(uni, 0)
     # the index in image.shape[] changes according to image positioninig. First check Imfusion then change indexes
 
-    # for u in uni:
-    for i in range(image.shape[1]-1, 0, -1):
-        for j in range(image.shape[0] - 1, 0, -1):
-            if image[j, i] > 0:
-                rays[j, i] = image[j,i]
-                break
+    for u in uni:
+        for i in range(image.shape[1]-1, 0, -1):
+            for j in range(image.shape[0] - 1, 0, -1):
+                if image[j, i] == u:
+                    rays[j, i] = u
+                    break
     return rays
 
 def blur(a):
@@ -62,17 +62,19 @@ class RayCast(imfusion.Algorithm):
         # compute the thresholding on each individual image in the set
         for image in self.imageset:
             # print(image.size())
-            arr = np.array(image) # creates a copy
+            arr = np.squeeze(np.array(image)) # creates a copy
             rays = np.zeros_like(np.squeeze(arr)) #empty image
 
             #the index in arr.shape[] and the dimension that we iterate on K
             #changes according to image positioninig. First check Imfusion then change indexes
 
-            for k in range(arr.shape[0]):
-                rays[k] = multi_raycast(arr[k], rays[k]) #assign the rays
+            for k in range(arr.shape[1]):
+                rays[:,k,:] = multi_raycast(arr[:,k,:], rays[:,k,:]) #assign the rays
 
-
+            #assign the spacing and the transform matrix
             image_out = imfusion.SharedImage(np.expand_dims(rays, axis=-1))
+            image_out.spacing = image.spacing
+            image_out.matrix = image.matrix
             self.imageset_out.add(image_out)
 
     def output(self):
