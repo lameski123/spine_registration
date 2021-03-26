@@ -79,66 +79,52 @@ class CPD(imfusion.Algorithm):
 
     @classmethod
     def convert_input(cls, data):
-        # print(len(data))
-        # if data.size == 2 and isinstance(data[0], imfusion.SharedImageSet):
         return data
-        # else:
-        #     raise IncompatibleError("Requires exactly two images")
 
     def compute(self):
         # clear output of previous runs
         self.imageset_out.clear()
 
         # rigid registration
-        # for x,y in zip(self.X, self.Y):
-        #add an extra value 1 for fourth dimension since matrix = (4x4)
+        #remove dimensions with value 1
         x_arr = np.squeeze(np.array(self.imageset1))# creates a copy
         y_arr = np.squeeze(np.array(self.imageset2))
 
+        #take the positions where a point exists
         X = np.array(np.nonzero(x_arr)).T
         Y = np.array(np.nonzero(y_arr)).T
+
+
+        #add an extra value 1 for fourth dimension since matrix = (4x4)
         X_temp = np.ones((X.shape[0], X.shape[1] + 1))
         Y_temp = np.ones((Y.shape[0], Y.shape[1] + 1))
 
+        for i in range(X.shape[0]):
+            X_temp[i, :3] = X[i]#, self.imageset2.spacing)#@self.imageset[0].matrix@self.imageset[0].spacing
+        for i in range(Y.shape[0]):
+            Y_temp[i, :3] = Y[i]#, self.imageset2.spacing)
+        x_matrix = self.imageset1.matrix
+        y_matrix = self.imageset2.matrix
+        #align to the world position
+        print(x_matrix, y_matrix)
+        #both y_matrix small missalignment
+        #both x rotated and missalignment
+        X = X_temp@x_matrix
+        Y = Y_temp@y_matrix
 
-        # print(X_temp.shape)
-        # for i in range(X.shape[0]):
-        #     X_temp[i, :3] = np.multiply(X[i], self.imageset1.spacing)#@self.imageset[0].matrix@self.imageset[0].spacing
-        # for i in range(Y.shape[0]):
-        #     Y_temp[i, :3] = np.multiply(Y[i], self.imageset1.spacing)
-        #
-        # X = X_temp@self.imageset1.matrix
-        # Y = Y_temp@self.imageset1.matrix
+        reg = cpd(**{"X":X[0::200,:3], "Y":Y[0::3,:3]})
 
-        # print(X_temp, X_temp.shape)
-        # X = x_arr.ravel()
-        # x_arr = X[X!=0]
-        # x_arr = x_arr[::2]
-        # Y = y_arr.ravel()
-        # y_arr = Y[Y!=0]
-        # y_arr = y_arr[::2]
-
-        # print(X.T, Y.T.shape, type(X))
-        #error thrown below y_arr must be 2D???
-        chunks = 5
-        size_chunks = int(4*X.shape[0]/chunks)
-        reg = cpd(**{"X":X[size_chunks:,:3], "Y":Y[size_chunks:,:3]})
-        # print(reg)
         #make sure the scale is not a parameter that we care about
         TY, (s_reg, R_reg, t_reg) = reg.register()
-        # TY = TY@self.imageset1.matrix[:-1,:-1]
-        # np.savetxt("inputX.out", X[size_chunks:,:3])
-        # np.savetxt("outputCPD.out", TY)
-        TY_map = np.zeros_like(y_arr)
+        TY_map = np.zeros_like(x_arr)#\
         for i in TY:
             TY_map[int(i[0]), int(i[1]), int(i[2])] = 1
-        # R_reg[:,2] = R_reg[:,2] + t_reg
-        # y_arr = y_arr@R_reg
-
-
         image_out = imfusion.SharedImage(np.expand_dims(TY_map, axis=-1))
-        image_out.spacing = self.imageset1.spacing
-        # image_out.matrix = self.imageset1.matrix
+        #imgset2.spacing and imgset1.matrix small missalignment
+        #imageset2.spacing and imageset2.matrix 180 deg rotated and same small miissalingnment
+        #imageset1.spacing and imageset2.matrix 180 deg rotated and original is large
+        image_out.spacing = self.imageset2.spacing
+        image_out.matrix = np.linalg.inv(self.imageset2.matrix)
         self.imageset_out.add(image_out)
 
     def output(self):

@@ -3,9 +3,8 @@ import numpy as np
 
 
 def raycast(image, rays):
-
-    for i in range(image.shape[1]-1, 0, -1):
-        for j in range(image.shape[0]-1, 0, -1):
+    for i in range(image.shape[1]):
+        for j in range(image.shape[0]):
             if image[j, i] != 0:
                 rays[j, i] = 1
                 break
@@ -18,8 +17,8 @@ def multi_raycast(image, rays):
     # the index in image.shape[] changes according to image positioninig. First check Imfusion then change indexes
 
     for u in uni:
-        for i in range(image.shape[1]-1, 0, -1):
-            for j in range(image.shape[0] - 1, 0, -1):
+        for i in range(image.shape[1]):
+            for j in range(image.shape[0]):
                 if image[j, i] == u:
                     rays[j, i] = u
                     break
@@ -67,9 +66,9 @@ class RayCast(imfusion.Algorithm):
 
             #the index in arr.shape[] and the dimension that we iterate on K
             #changes according to image positioninig. First check Imfusion then change indexes
-
-            for k in range(arr.shape[1]):
-                rays[:,k,:] = multi_raycast(arr[:,k,:], rays[:,k,:]) #assign the rays
+            print(arr.shape)
+            for k in range(arr.shape[0]):
+                rays[k,:,:] = raycast(arr[k,:,:], rays[k,:,:]) #assign the rays
 
             #assign the spacing and the transform matrix
             image_out = imfusion.SharedImage(np.expand_dims(rays, axis=-1))

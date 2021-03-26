@@ -12,31 +12,36 @@ import imfusion
 imfusion.init()
 
 ##############RAYCAST##################
+
 # from myAlg import *
 # from Raycast import *
-# imgs = imfusion.open("C:\\Users\\Jane\\Downloads\\vertebra_imf_file")
-# temp = imgs[0][0]
-# # print(temp)
-# output = imfusion.executeAlgorithm("Raycast", imgs)
-# img = output
+#
+# if __name__ == "__main__":
+#
+#     imgs = imfusion.open("./models/cropped_model_label_map.imf")
+#     temp = imgs[0][0]
+#     # print(temp)
+#     output = imfusion.executeAlgorithm("Raycast", imgs)
+#     img = output
+#
+#     print(img)
+#     # images = []
+#     # for i in imgs:
+#     #     images.append(np.array(i))
+#     # images
+#
+#     img = np.squeeze(np.array(img[0]))
+#
+#
+#     #show raycast from all slices one by one
+#     for k in range(img.shape[0]):
+#         # rays[k] = raycast(blur(img[k, :, :]), rays[k])
+#         if np.unique(img[k]).size > 0:
+#             plt.figure()
+#             plt.imshow(img[k])
+#             # ax[1].imshow(blur(img[k, :, :]))
+#             plt.show()
 
-# print(img)
-# # images = []
-# # for i in imgs:
-# #     images.append(np.array(i))
-# # images
-#
-# img = np.squeeze(np.array(img[0]))
-#
-#
-# #show raycast from all slices one by one
-# for k in range(img.shape[0]):
-#     # rays[k] = raycast(blur(img[k, :, :]), rays[k])
-#     plt.figure()
-#     plt.imshow(img[k])
-#     # ax[1].imshow(blur(img[k, :, :]))
-#     plt.show()
-#
 ##############CPD##################
 
 
@@ -44,9 +49,8 @@ from CPD import *
 from Raycast import *
 
 if __name__ == "__main__":
-
     XY = imfusion.SharedImageSet()
-    image = imfusion.open("./models/for_cpd_full_models.imf")
+    image = imfusion.open("./models/3D_CPD.imf")
 
     # x_np = np.squeeze(np.array(X[0]))
     # y_np = np.squeeze(np.array(Y[0]))
