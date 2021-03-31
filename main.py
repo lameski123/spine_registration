@@ -50,7 +50,8 @@ from Raycast import *
 
 if __name__ == "__main__":
     XY = imfusion.SharedImageSet()
-    image = imfusion.open("./models/3D_CPD.imf")
+    image = imfusion.open("./models/3D_US_point_cloud.imf")
+    image2 = imfusion.open("./models/3D_CT_point_cloud.imf")
 
     # x_np = np.squeeze(np.array(X[0]))
     # y_np = np.squeeze(np.array(Y[0]))
@@ -66,7 +67,7 @@ if __name__ == "__main__":
     # XY.add(X)
     # XY.add(Y)
     print(image)
-    output = imfusion.executeAlgorithm("CPD", image)
+    output = imfusion.executeAlgorithm("CPD", (image, image2))
     #
     print(output)
     # Y = imfusion.executeAlgorithm('Apply Transformation', X)
