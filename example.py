@@ -201,33 +201,33 @@ def main():
 
     # callback = partial(visualize, ax=ax)
 
-    # TY_list =[]
-    # X_ = np.array([x for x_x in X_list for x in x_x])
-    # reg = RigidRegistration(**{'X': X_[::5,:3], 'Y': Y[0::20,:3]})
-    # TY, (s_reg, R_reg, t_reg) = reg.register()
-    # # (s_reg, R_reg, t_reg) = (1,np.array([[0.99894673, 0.01998482, 0.04130427],
-    # #  [-0.02140603, 0.99918378, 0.0342572],
-    # #  [-0.04058593, -0.03510528, 0.99855916]]), np.array([8.94688965, 3.25655959, 2.46492813]))
-    # (s_reg_next, R_reg_next, t_reg_next) = (s_reg, R_reg, t_reg)
-    # for X in X_list:
-    #     TY_ = np.dot(X[:, :3], R_reg[:3, :3])
-    #     TY_[:, :3] += t_reg
-    #     TY_list.append(TY_)
-    # output_list = []
-    # print("fiirst cpd passed!")
-    # for i, X in enumerate(TY_list):
-    #     reg = RigidRegistration(**{'X': X[::5, :3], 'Y': Y[0::20, :3],
-    #                                'springs': springs, "prev_transform": (s_reg, R_reg, t_reg),
-    #                                'next_transform':(s_reg_next, R_reg_next, t_reg_next),
-    #                                "initialization": False, "iter":i})
-    #     TY, (s_reg, R_reg, t_reg) = reg.register()
-    #     TY_ = np.dot(X[::5,:3], R_reg[:3,:3])
-    #     TY_[:,:3] += t_reg
-    #     output_list.extend(TY_)
-    #     print("iteration: ", i)
+    TY_list =[]
+    X_ = np.array([x for x_x in X_list for x in x_x])
+    reg = RigidRegistration(**{'X': X_[::5,:3], 'Y': Y[0::20,:3]})
+    TY, (s_reg, R_reg, t_reg) = reg.register()
+    # (s_reg, R_reg, t_reg) = (1,np.array([[0.99894673, 0.01998482, 0.04130427],
+    #  [-0.02140603, 0.99918378, 0.0342572],
+    #  [-0.04058593, -0.03510528, 0.99855916]]), np.array([8.94688965, 3.25655959, 2.46492813]))
+    (s_reg_next, R_reg_next, t_reg_next) = (s_reg, R_reg, t_reg)
+    for X in X_list:
+        TY_ = np.dot(X[:, :3], R_reg[:3, :3])
+        TY_[:, :3] += t_reg
+        TY_list.append(TY_)
+    output_list = []
+    print("fiirst cpd passed!")
+    for i, X in enumerate(TY_list):
+        reg = RigidRegistration(**{'X': X[::5, :3], 'Y': Y[0::20, :3],
+                                   'springs': springs, "prev_transform": (s_reg, R_reg, t_reg),
+                                   'next_transform':(s_reg_next, R_reg_next, t_reg_next),
+                                   "initialization": False, "iter":i})
+        TY, (s_reg, R_reg, t_reg) = reg.register()
+        TY_ = np.dot(X[::5,:3], R_reg[:3,:3])
+        TY_[:,:3] += t_reg
+        output_list.extend(TY_)
+        print("iteration: ", i)
     # print(R_reg, t_reg)
-    # np.savetxt("./models/bio_experiment_one_by_one2.txt", np.array(output_list))
-    output_list = np.loadtxt("./models/bio_experiment_one_by_one2.txt")
+    np.savetxt("./models/bio_experiment_one_by_one2.txt", np.array(output_list))
+
 
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
@@ -235,8 +235,8 @@ def main():
     ax.set_xlim([-40,40])
     ax.set_ylim([-40, 40])
     ax.set_zlim([0, 200])
-    ax.scatter(np.array(output_list)[:, 0], np.array(output_list)[:, 1], np.array(output_list)[:, 2], color="red")
-    ax.scatter(Y[::20,0], Y[::20,1], Y[::20,2], color = "blue", alpha = 0.1)
+    ax.scatter(np.array(output_list)[::5, 0], np.array(output_list)[::5, 1], np.array(output_list)[::5, 2], color="red")
+    ax.scatter(Y[::20,0], Y[::20,1], Y[::20,2], color = "blue")
     plt.show()
     # rot_mat = [[0.87228969, -0.15346405, 0.46428384],
     #            [0.16356022, 0.98635545, 0.01873468],
