@@ -43,12 +43,36 @@ def update_transform(self):
         self.A = np.dot(self.A, Y_hat)
     else:
         (s_prev, R_prev, t_prev) = (None, None, None)
+        (s_next, R_next, t_next) = (None, None, None)
         reg_term = np.zeros((3,))
-        if self.iter>0:
+        if self.iter>0 and self.iter <3:
             (s_prev,R_prev,t_prev) = self.prev_transform
+            (s_next,R_next,t_next) = self.next_transform
             reg_term = np.divide(
-                self.alpha*s_prev*np.sum(np.dot(R_prev,np.transpose(self.springs[self.iter-1])), axis=0),
+                self.alpha*s_prev*np.sum(np.dot(R_prev,np.transpose(self.springs[self.iter-1])), axis=0) +
+                self.alpha*s_next*np.sum(np.dot(R_next,np.transpose(self.springs[self.iter+1])), axis=0),
                 self.Np + 2*3*self.alpha)
+        elif self.iter == 0:
+            (s_prev, R_prev, t_prev) = self.prev_transform
+            (s_next, R_next, t_next) = self.next_transform
+            reg_term = np.divide(
+                # self.alpha * s_prev * np.sum(np.dot(R_prev, np.transpose(self.springs[self.iter - 1])), axis=0) +
+                self.alpha * s_next * np.sum(np.dot(R_next, np.transpose(self.springs[self.iter + 1])), axis=0),
+                self.Np + 2 * 3 * self.alpha)
+        elif self.iter == 3:
+            (s_prev, R_prev, t_prev) = self.prev_transform
+            (s_next, R_next, t_next) = self.next_transform
+            reg_term = np.divide(
+                self.alpha * s_prev * np.sum(np.dot(R_prev, np.transpose(self.springs[self.iter - 1])), axis=0) +
+                self.alpha * s_next * np.sum(np.dot(R_next, np.transpose(self.springs[self.iter])), axis=0),
+                self.Np + 2 * 3 * self.alpha)
+        elif self.iter == 4:
+            (s_prev, R_prev, t_prev) = self.prev_transform
+            (s_next, R_next, t_next) = self.next_transform
+            reg_term = np.divide(
+                self.alpha * s_prev * np.sum(np.dot(R_prev, np.transpose(self.springs[self.iter - 1])), axis=0),
+                # self.alpha * s_next * np.sum(np.dot(R_next, np.transpose(self.springs[self.iter + 1])), axis=0),
+                self.Np + 2 * 3 * self.alpha)
         # target point cloud mean
         muX = np.divide(np.sum(np.dot(self.P, self.X), axis=0),
                         self.Np + 2*3*self.alpha) - reg_term/2
@@ -136,7 +160,7 @@ def main():
     X_list.append(np.loadtxt('./models/L5_pc_rt.txt')[::5])
     # # synthetic data, equaivalent to X + 1
     Y = np.loadtxt('./models/L1_L5_pc.txt')
-    sp = np.loadtxt('manual_mid_points.txt')[:,:3]
+    sp = np.loadtxt('./models/manual_mid_points.txt')[:,:3]
     springs = np.split(sp, 4)
     # # _,_,X = grid_sampling(X)
     # print(X.shape)
@@ -147,7 +171,7 @@ def main():
     #
     # fig = plt.figure()
     # ax = fig.add_subplot(projection='3d')
-    # ax.scatter(points[:,0], points[:,1], points[:,2], color="red")
+    # # ax.scatter(points[:,0], points[:,1], points[:,2], color="red")
     # ax.set_xlim([-40,40])
     # ax.set_ylim([-40, 40])
     # ax.set_zlim([0, 200])
@@ -177,31 +201,43 @@ def main():
 
     # callback = partial(visualize, ax=ax)
 
-    TY_list =[]
+    # TY_list =[]
     # X_ = np.array([x for x_x in X_list for x in x_x])
     # reg = RigidRegistration(**{'X': X_[::5,:3], 'Y': Y[0::20,:3]})
     # TY, (s_reg, R_reg, t_reg) = reg.register()
-    (s_reg, R_reg, t_reg) = (1,np.array([[0.99894673, 0.01998482, 0.04130427],
-     [-0.02140603, 0.99918378, 0.0342572],
-     [-0.04058593, -0.03510528, 0.99855916]]), np.array([8.94688965, 3.25655959, 2.46492813]))
-    for X in X_list:
-        TY_ = np.dot(X[:, :3], R_reg[:3, :3])
-        TY_[:, :3] += t_reg
-        TY_list.append(TY_)
-    output_list = []
-    print("fiirst cpd passed!")
-    for i, X in enumerate(TY_list):
-        reg = RigidRegistration(**{'X': X[:, :3], 'Y': Y[0::20, :3],
-                                   'springs': springs, "prev_transform": (s_reg, R_reg, t_reg),
-                                   "initialization": False, "iter":i})
-        TY, (s_reg, R_reg, t_reg) = reg.register()
-        TY_ = np.dot(X[:,:3], R_reg[:3,:3])
-        TY_[:,:3] += t_reg
-        output_list.extend(TY_)
-        print("iteration: ", i)
+    # # (s_reg, R_reg, t_reg) = (1,np.array([[0.99894673, 0.01998482, 0.04130427],
+    # #  [-0.02140603, 0.99918378, 0.0342572],
+    # #  [-0.04058593, -0.03510528, 0.99855916]]), np.array([8.94688965, 3.25655959, 2.46492813]))
+    # (s_reg_next, R_reg_next, t_reg_next) = (s_reg, R_reg, t_reg)
+    # for X in X_list:
+    #     TY_ = np.dot(X[:, :3], R_reg[:3, :3])
+    #     TY_[:, :3] += t_reg
+    #     TY_list.append(TY_)
+    # output_list = []
+    # print("fiirst cpd passed!")
+    # for i, X in enumerate(TY_list):
+    #     reg = RigidRegistration(**{'X': X[::5, :3], 'Y': Y[0::20, :3],
+    #                                'springs': springs, "prev_transform": (s_reg, R_reg, t_reg),
+    #                                'next_transform':(s_reg_next, R_reg_next, t_reg_next),
+    #                                "initialization": False, "iter":i})
+    #     TY, (s_reg, R_reg, t_reg) = reg.register()
+    #     TY_ = np.dot(X[::5,:3], R_reg[:3,:3])
+    #     TY_[:,:3] += t_reg
+    #     output_list.extend(TY_)
+    #     print("iteration: ", i)
     # print(R_reg, t_reg)
-    np.savetxt("./models/bio_experiment_one_by_one.txt", np.array(output_list))
-    # plt.show()
+    # np.savetxt("./models/bio_experiment_one_by_one2.txt", np.array(output_list))
+    output_list = np.loadtxt("./models/bio_experiment_one_by_one2.txt")
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    # ax.scatter(points[:,0], points[:,1], points[:,2], color="red")
+    ax.set_xlim([-40,40])
+    ax.set_ylim([-40, 40])
+    ax.set_zlim([0, 200])
+    ax.scatter(np.array(output_list)[:, 0], np.array(output_list)[:, 1], np.array(output_list)[:, 2], color="red")
+    ax.scatter(Y[::20,0], Y[::20,1], Y[::20,2], color = "blue", alpha = 0.1)
+    plt.show()
     # rot_mat = [[0.87228969, -0.15346405, 0.46428384],
     #            [0.16356022, 0.98635545, 0.01873468],
     #            [-0.460824, 0.0595963, 0.8854883]]
