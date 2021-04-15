@@ -200,7 +200,7 @@ def main():
     # plt.plot(line[:,0],line[:,1],line[:,2], "g+")
 
     # callback = partial(visualize, ax=ax)
-
+#
     TY_list =[]
     X_ = np.array([x for x_x in X_list for x in x_x])
     reg = RigidRegistration(**{'X': X_[::5,:3], 'Y': Y[0::20,:3]})
