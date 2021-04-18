@@ -2,6 +2,11 @@ import imfusion
 import numpy as np
 from pycpd import RigidRegistration as cpd
 
+old_init = cpd.__init__
+def new_init(self, *k, springs = None,**kw ):
+    old_init(self, *k, **kw)
+    self.a = 2**5
+    self.springs = springs
 
 def update_transform(self):
     """
@@ -126,7 +131,7 @@ class CPD(imfusion.Algorithm):
 
         # np.savetxt("inputX_point_cloud210.txt", X_)
         # np.savetxt("inputY_point_cloud.txt", Y[0::3,:3])
-        reg = cpd(**{"X":X, "Y":Y})
+        reg = cpd(**{"X":X[0::200], "Y":Y})
 
         #make sure the scale is not a parameter that we care about
         TY, (s_reg, R_reg, t_reg) = reg.register()
