@@ -21,14 +21,15 @@ def new_init(self, *k, springs = None, initialization = True,
     self.max_iterations = 50
     #attach the springs to the respective vertebra
     #and extend the probability matrix.
-    for i, pt in enumerate(self.springs[self.iter]):
+    if initialization == False:
+        for i, pt in enumerate(self.springs[self.iter]):
 
-        self.X = np.vstack([self.X, pt])
+            self.X = np.vstack([self.X, pt])
 
-        P_t = np.zeros_like(self.P[:, 0])
-        P_t[-1] = 2 * self.sigma2 * self.alpha
+            P_t = np.zeros_like(self.P[:, 0])
+            P_t[-1] = 2 * self.sigma2 * self.alpha
 
-        self.P = np.column_stack((self.P, P_t))
+            self.P = np.column_stack((self.P, P_t))
 
 
 
@@ -118,21 +119,21 @@ RigidRegistration.update_transform = update_transform
 #iterative visualization of the registration process
 def visualize(iteration, error, X, Y, ax):
     plt.cla()
-    ax.scatter(X[:, 0],  X[:, 1], X[:, 2], color='red', label='CT', alpha=0.1)
-    ax.scatter(Y[:, 0],  Y[:, 1], Y[:, 2], color='blue', label='US', alpha=0.1)
+    ax.scatter(X[:, 0],  X[:, 1], X[:, 2], color='red', alpha=0.1)
+    ax.scatter(Y[:, 0],  Y[:, 1], Y[:, 2], color='blue', alpha=0.1)
     ax.text2D(0.87, 0.92, 'Iteration: {:d}\nQ: {:06.4f}'.format(
         iteration, error), horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize='x-large')
-    ax.legend(loc='upper left', fontsize='x-large')
+    # ax.legend(loc='upper left', fontsize='x-large')
     plt.draw()
     plt.pause(0.001)
 
 
-def main(X_paths, Y_paths, sp, output_path):
+def main(X_paths, Y_paths, sp, output_path, X_init_path=None):
 
     #load the point clouds
     X_list = []
     for p in X_paths:
-        X_list.append(np.loadtxt(p)[::5])
+        X_list.append(np.loadtxt(p))
     # X_list.append(np.loadtxt('./models/L2_raycasted_pc.txt')[::5])
     # X_list.append(np.loadtxt('./models/L3_raycasted_pc.txt')[::5])
     # X_list.append(np.loadtxt('./models/L4_raycasted_pc.txt')[::5])
@@ -142,6 +143,7 @@ def main(X_paths, Y_paths, sp, output_path):
     sp = np.loadtxt(sp)[:,:3]
     springs = np.split(sp, 5)[::-1]
 
+    output_initial = []
     output_list = []
 
     fig = plt.figure()
@@ -151,18 +153,29 @@ def main(X_paths, Y_paths, sp, output_path):
     ax.set_ylim([-40, 40])
     ax.set_zlim([0, 200])
 
-    #run CPD with constraints iteratively for each vertebra
-    for i, X in enumerate(X_list):
-        reg = RigidRegistration(**{'X': X[::3, :3], 'Y': Y[::50, :3],
-                                   'springs': springs,
-                                   "initialization": False, "iter":i})
+    if X_init_path != None:
+    #run cpd without constraints (initial registration)
+        print("entered init method: ")
+        X_init = np.loadtxt(X_init_path)
+        reg = RigidRegistration(**{'Y': X_init[::15, :3], 'X': Y[::200, :3],
+                                   "initialization": True})
         TY, (s_reg, R_reg, t_reg) = reg.register(callback)
-        TY_ = np.dot(X[::3,:3], np.linalg.inv(R_reg[:3,:3]))
-        TY_[:,:3] += t_reg
-        output_list.extend(TY_)
-        print("iteration: ", i)
 
-    np.savetxt(output_path, np.array(output_list))
+        np.savetxt(output_path, TY)
+
+    else:
+        #run CPD with constraints iteratively for each vertebra
+        for i, X in enumerate(X_list):
+            reg = RigidRegistration(**{'X': X[::15, :3], 'Y': Y[::200, :3],
+                                       'springs': springs,
+                                       "initialization": False, "iter":i})
+            TY, (s_reg, R_reg, t_reg) = reg.register(callback)
+            TY_ = np.dot(X[:,:3], np.linalg.inv(R_reg[:3,:3]))
+            TY_[:,:3] += t_reg
+            output_list.extend(TY_)
+            print("iteration: ", i)
+
+        np.savetxt(output_path, np.array(output_list))
 
 
 
@@ -171,9 +184,11 @@ def main(X_paths, Y_paths, sp, output_path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument("-X_init", "--CT")
     parser.add_argument("-X", "--vertebrae", required=True, nargs='+', default=[])
     parser.add_argument("-Y", "--US", required=True)
     parser.add_argument("-s", "--springs", required=True)
     parser.add_argument("-save", "--saveas", required=True)
+    # parser.add_argument('-method', '--method', required=True)
     args = parser.parse_args()
-    main(args.vertebrae, args.US, args.springs, args.saveas)
+    main(args.vertebrae, args.US, args.springs, args.saveas, X_init_path=args.CT)
