@@ -1,4 +1,4 @@
-# spine_registration
+# Guided research: Spine Registration
 
 To run the multi vertebrae CPD with biomechanical model use the multi_vertebrae_biomechanical.py script.
 
